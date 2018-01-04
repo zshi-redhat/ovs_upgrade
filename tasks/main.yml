@@ -33,7 +33,7 @@
   become: true
   lineinfile:
     dest: /etc/sysconfig/network-scripts/ifcfg-dpdk0
-    line: 'OVS_EXTRA=set Interface dpdk0 options:dpdk-devargs=0000:06:00.1"'
+    line: 'OVS_EXTRA="set Interface dpdk0 options:dpdk-devargs=0000:06:00.1"'
     state: present
 
 - name: config ovs default.conf
@@ -58,7 +58,7 @@
 - name: change owner and group of openvswitch files
   become: true
   file:
-    path: "{{ item }}"
+    path: "{{ item.name }}"
     owner: openvswitch
     group: hugetlbfs
     recurse: yes
