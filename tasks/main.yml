@@ -40,13 +40,18 @@
 
 - name: config ovs default.conf
   become: true
-  shell: sed -i 's/^\(OVS_USER_ID=".*\)"/OVS_USER_ID="openvswitch:hugetlbfs"/g' /etc/openvswitch/default.conf
+  lineinfile:
+    dest: /etc/openvswitch/default.conf
+    regexp: '^OVS_USER_ID=".*"'
+    line: 'OVS_USER_ID="openvswitch:hugetlbfs"'
+    state: present
+    backrefs: yes
 
 - name: config libvirt qemu.conf
   become: true
   lineinfile:
     dest: /etc/libvirt/qemu.conf
-    line: {{ item }}
+    line: "{{ item }}"
     state: present
   with_items:
     - 'user = "openvswitch"'
