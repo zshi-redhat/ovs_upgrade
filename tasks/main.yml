@@ -8,15 +8,14 @@
 - name: clone tripleo-repos
   become: true
   git:
-    repo: '{{ tripleo-repos-url }}'
-    version: '{{ tripleo-repos-version }}'
+    repo: "{{ tripleo_repos_url }}"
     dest: /root/tripleo-repos
     clone: yes
     force: yes
 
 - name: install tripleo-repos
-  shell: "sudo python setup.py install"
-  cdir: /root/tripleo-repos
+  become: true
+  shell: "cd /root/tripleo-repos; python setup.py install"
 
 - name: switch repo to master which contains latest ovs
   shell: "sudo tripleo-repos -b master current"
@@ -30,11 +29,15 @@
 - name: switch repo back
   shell: "sudo tripleo-repos -b newton current"
 
-- name: add ovs-extra: dev-args in dpdk network config file
-  shell: ""
+- name: add ovs-extra/dev-args in dpdk network config file
+  become: true
+  lineinfile:
+    dest: /etc/sysconfig/network-scripts/ifcfg-dpdk0
+    line: 'OVS_EXTRA=set Interface dpdk0 options:dpdk-devargs=0000:06:00.1"'
+    state: present
 
 - name: config ovs default.conf
-  shell: sudo sed -i 's/^\(OVS_USER_ID=".*\)"/\1 openvswitch:hugetlbfs"/g' /etc/openvswitch/default.conf
+  shell: sudo sed -i 's/^\(OVS_USER_ID=".*\)"/OVS_USER_ID="openvswitch:hugetlbfs"/g' /etc/openvswitch/default.conf
 
 - name: add hugetlbfs group
   become: true
@@ -55,14 +58,14 @@
 - name: change owner and group of openvswitch files
   become: true
   file:
-    path: {{ item }}
+    path: "{{ item }}"
     owner: openvswitch
     group: hugetlbfs
     recurse: yes
   with_items:
-    - { name: {{ ovs_config_dir } }
-    - { name: {{ ovs_log_dir }} }
-    - { name: {{ ovs_run_dir }} }
+    - name: "{{ ovs_config_dir }}"
+    - name: "{{ ovs_log_dir }}"
+    - name: "{{ ovs_run_dir }}"
     
 - name: change vfio group
   become: true
