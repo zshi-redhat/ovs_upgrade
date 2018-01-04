@@ -1,0 +1,72 @@
+---
+- name: install dependency packages
+  become: true
+  yum:
+    name: git
+    state: present
+
+- name: clone tripleo-repos
+  become: true
+  git:
+    repo: '{{ tripleo-repos-url }}'
+    version: '{{ tripleo-repos-version }}'
+    dest: /root/tripleo-repos
+    clone: yes
+    force: yes
+
+- name: install tripleo-repos
+  shell: "sudo python setup.py install"
+  cdir: /root/tripleo-repos
+
+- name: switch repo to master which contains latest ovs
+  shell: "sudo tripleo-repos -b master current"
+
+- name: update ovs to latest
+  become: true
+  yum:
+    name: openvswitch
+    state: latest
+
+- name: switch repo back
+  shell: "sudo tripleo-repos -b newton current"
+
+- name: add ovs-extra: dev-args in dpdk network config file
+  shell: ""
+
+- name: config ovs default.conf
+  shell: sudo sed -i 's/^\(OVS_USER_ID=".*\)"/\1 openvswitch:hugetlbfs"/g' /etc/openvswitch/default.conf
+
+- name: add hugetlbfs group
+  become: true
+  group:
+    name: hugetlbfs
+    state: present
+
+- name: add openvswitch user
+  become: true
+  user:
+    name: openvswitch
+    shell: /sbin/nologin
+    comment: "OpenvSwitch Daemons"
+    home: /
+    system: yes
+    group: hugetlbfs
+
+- name: change owner and group of openvswitch files
+  become: true
+  file:
+    path: {{ item }}
+    owner: openvswitch
+    group: hugetlbfs
+    recurse: yes
+  with_items:
+    - { name: {{ ovs_config_dir } }
+    - { name: {{ ovs_log_dir }} }
+    - { name: {{ ovs_run_dir }} }
+    
+- name: change vfio group
+  become: true
+  file:
+    path: /dev/vfio
+    group: hugetlbfs
+    recurse: yes

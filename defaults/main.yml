@@ -1,0 +1,9 @@
+# tripleo repos
+tripleo-repos-url: "https://github.com/openstack/tripleo-repos.git"
+tripleo-repos-version: "latest"
+
+# openvswitch
+ovs_config_dir: "/etc/openvswitch"
+ovs_log_dir: "/var/log/openvswitch"
+ovs_run_dir: "/var/run/openvswitch"
+
