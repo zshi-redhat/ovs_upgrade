@@ -31,13 +31,17 @@
   become: true
   shell: "tripleo-repos -b newton current"
 
+# TODO: retrieve dpdk port mapping automatically
+#       instead of using configurable parameter:
+#       dpdk_ports dict.
 - name: add ovs-extra/dev-args in dpdk network config file
   become: true
   lineinfile:
-    dest: "/etc/sysconfig/network-scripts/ifcfg-{{ dpdk_ports.key }}"
-    line: 'OVS_EXTRA="set Interface {{ dpdk_ports.key }} options:dpdk-devargs={{ dpdk_ports.value }}"'
+    dest: "/etc/sysconfig/network-scripts/ifcfg-{{ item.key }}"
+    line: 'OVS_EXTRA="set Interface {{ item.key }} options:dpdk-devargs={{ item.value }}"'
     state: present
   with_dict: "{{ dpdk_ports }}"
+  when: dpdk_enabled|bool
 
 - name: config ovs default.conf
   become: true
