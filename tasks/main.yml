@@ -34,9 +34,10 @@
 - name: add ovs-extra/dev-args in dpdk network config file
   become: true
   lineinfile:
-    dest: /etc/sysconfig/network-scripts/ifcfg-dpdk0
-    line: 'OVS_EXTRA="set Interface dpdk0 options:dpdk-devargs=0000:06:00.1"'
+    dest: "/etc/sysconfig/network-scripts/ifcfg-{{ dpdk_ports.key }}"
+    line: 'OVS_EXTRA="set Interface {{ dpdk_ports.key }} options:dpdk-devargs={{ dpdk_ports.value }}"'
     state: present
+  with_dict: "{{ dpdk_ports }}"
 
 - name: config ovs default.conf
   become: true
