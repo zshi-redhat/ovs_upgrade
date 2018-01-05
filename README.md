@@ -15,21 +15,28 @@ Role Variables
 ==============
 
 Tripleo repos URL:
-  
+
     tripleo_repos_url
-  
+
 Openvswitch config directory:
 
     ovs_config_dir
-  
+
 Openvswitch log directory:
 
     ovs_log_dir
-  
+
 Openvswitch run directory:
 
     ovs_run_dir
 
+Whether DPDK is enabled on upgrading node:
+
+    dpdk_enabled
+
+DPDK port mapping ( name: pci_address):
+
+    dpdk_ports
 
 Dependencies
 ============
