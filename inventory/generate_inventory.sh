@@ -26,11 +26,14 @@ echo "" >> $inventory
 # set vars
 echo "[overcloud_nodes:vars]" >> $inventory
 echo "ansible_ssh_user=heat-admin" >> $inventory
+echo "ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> $inventory
 echo "" >> $inventory
 
 echo "[controller:vars]" >> $inventory
 echo "ansible_ssh_user=heat-admin" >> $inventory
+echo "ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> $inventory
 echo "" >> $inventory
 
 echo "[compute:vars]" >> $inventory
 echo "ansible_ssh_user=heat-admin" >> $inventory
+echo "ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> $inventory
