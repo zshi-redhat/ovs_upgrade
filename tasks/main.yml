@@ -98,3 +98,13 @@
     path: /dev/vfio
     group: hugetlbfs
     recurse: yes
+
+- name: restart server
+  shell: sleep 2 && /sbin/shutdown -r now "System reboot"
+  async: 1
+  poll: 0
+
+- name: Wait for reboot
+  wait_for_connection:
+    delay: 10
+    timeout: 60
