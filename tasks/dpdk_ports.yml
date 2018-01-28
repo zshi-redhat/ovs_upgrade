@@ -1,0 +1,70 @@
+---
+- name: register dpdk_mapping_file output
+  command: "cat {{ dpdk_mapping_file }}"
+  register: dpdk_mapping_output
+
+- name: register net_config_file output
+  command: "cat {{ net_config_file }}"
+  register: net_config_output
+
+- name: debug dpdk-mapping-output
+  debug:
+    msg: "{{ dpdk_mapping_output.stdout|from_yaml}}"
+
+- name: debug net-config-output
+  debug:
+    msg: "{{ net_config_output.stdout|from_json}}"
+
+- name: populate dpdk_port->alias_port mapping dict
+  set_fact:
+    dpdk_alias_mapping: "{{ dpdk_alias_mapping|default({})|combine({ item[0].name: item[0].members[0].name }) }}"
+  with_items:
+    - "{{ net_config_output.stdout|from_json|json_query(dpdk_port_query) }}"
+  when: item|length > 0
+  vars:
+    dpdk_port_query: "network_config[*].members[?type=='ovs_dpdk_port']"
+
+- name: debug dpdk_alias_mapping
+  debug: var=dpdk_alias_mapping
+
+- name: populate real_port->pci_address mapping dict
+  set_fact:
+    real_pci_mapping: "{{ real_pci_mapping|default({})|combine({ item.name: item.pci_address }) }}"
+  with_items:
+    - "{{ dpdk_mapping_output.stdout|from_yaml }}"
+
+- name: debug real_pci_mapping
+  debug: var=real_pci_mapping
+
+- name: register os-net-config interface mapping output
+  shell: "os-net-config -i {{ item }} | cut -d\"'\" -f4"
+  with_items:
+    - "{{ dpdk_alias_mapping.values() }}"
+  register: raw_alias_mapping
+
+- name: debug raw_alias_mapping
+  debug: var=raw_alias_mapping
+
+- name: populate alias_port->real_port mapping dict
+  set_fact:
+    alias_real_mapping: "{{ alias_real_mapping|default({})|combine({item.item:item.stdout}) }}"
+  with_items: "{{ raw_alias_mapping.results }}"
+
+- name: debug alias_real_mapping
+  debug: var=alias_real_mapping
+
+- name: populate dpdk_port->real_port mapping dict
+  set_fact:
+    dpdk_ports: "{{ dpdk_ports|default({})|combine({ item.key: alias_real_mapping[item.value] }) }}"
+  with_dict: "{{ dpdk_alias_mapping }}"
+
+- name: debug dpdk_ports 1
+  debug: var=dpdk_ports
+
+- name: populate dpdk_port->pci_address mapping dict
+  set_fact:
+    dpdk_ports: "{{ dpdk_ports|default({})|combine({ item.key: real_pci_mapping[item.value] }) }}"
+  with_dict: "{{ dpdk_ports }}"
+
+- name: debug dpdk_ports 2
+  debug: var=dpdk_ports
