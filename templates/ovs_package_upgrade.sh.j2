@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# Perform ovs package upgrade and related steps
+set -euo pipefail
+
+# Install tripleo-repos
+TRIPLEO_REPOS_RPM=$(curl -L --silent https://trunk.rdoproject.org/centos7/current/ | grep python2-tripleo-repos | awk -F "href" {'print $2'} | awk -F '"' {'print $2'})
+sudo yum localinstall -y https://trunk.rdoproject.org/centos7/current/${TRIPLEO_REPOS_RPM}
+
+# Get current ovs version
+CURRENT_OVS_VERSION=$(rpm -q --queryformat '%{Version}\n' openvswitch | cut -d. -f1-2)
+
+# Backup delorean repos
+sudo mkdir /home/stack/REPOBACKUP
+sudo mv /etc/yum.repos.d/delorean* /home/stack/REPOBACKUP
+
+# Install openstack repo according to target ovs version
+{% if target_ovs_version >= $((CURRENT_OVS_VERSION)) %}
+
+{% if target_ovs_version == '2.6' %}
+sudo tripleo-repos -b ocata current
+{% elif target_ovs_version == '2.7 '%}
+sudo tripleo-repos -b pike current
+{% elif target_ovs_version == '2.8 '%}
+sudo tripleo-repos -b queens current
+{% endif %}
+
+{% else %}
+echo "Target ovs version is lower than current ovs version, skipping upgrade..."
+{% endif %}
+
+
+sudo yum update -y openvswitch
+
+# Restore previous repos
+sudo rm -rf /etc/yum.repos.d/delorean*
+sudo mv /home/stack/REPOBACKUP/* /etc/yum.repos.d/

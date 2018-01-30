@@ -1,0 +1,5 @@
+---
+- name: create ovs package update script
+  template:
+    src: "{{ ovs_package_update_template }}"
+    dest: "{{ ovs_package_update_script }}"

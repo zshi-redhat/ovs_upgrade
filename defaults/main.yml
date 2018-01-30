@@ -1,5 +1,7 @@
-# tripleo repos
-tripleo_repos_url: "https://github.com/openstack/tripleo-repos.git"
+---
+# defaults file for ovs upgrade
+# main vars:
+working_dir: "{{ (ansible_env|default({})).HOME|default('/home/stack') }}"
 
 # openvswitch
 ovs_config_dir: "/etc/openvswitch"
@@ -9,15 +11,25 @@ ovs_run_dir: "/var/run/openvswitch"
 # os-net-config config.json path
 net_config_file: "/etc/os-net-config/config.json"
 
+# dpdk mapping file path
+dpdk_mapping_file: "/var/lib/os-net-config/dpdk_mapping.yaml"
+
 # whether dpdk is enabled on upgrading node
 dpdk_enabled: false
 
 # dpdk ports mapping {name: pci_address}
 # this may differ among compute nodes
 # dpdk_ports: { "dpdk0": "0000:06:00.1" }
-dpdk_mapping_file: "/var/lib/os-net-config/dpdk_mapping.yaml"
 
-# list of packages to upgrade
-packages_to_upgrade:
-    - openvswitch
-    - kernel
+# this only allows major version changes, such as 2.6, 2.7 etc
+# subversion like 2.6.1, 2.7.2 are not supported
+target_ovs_version: "2.8"
+
+# ovs upgrade jinja template name
+ovs_package_upgrade_template: ovs_package_upgrade.sh.j2
+
+# ovs upgrade script name
+ovs_package_upgrade_script: "{{ working_dir }}/ovs_package_upgrade.sh"
+
+# reboot server after ovs upgrade
+manual_reboot: true

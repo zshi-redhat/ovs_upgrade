@@ -1,0 +1,17 @@
+---
+- name: restart server
+  shell: sleep 2 && sudo reboot
+  async: 1
+  poll: 0
+
+- name: waiting for reboot to start
+  pause:
+    seconds: 30
+
+- name: wait for nodes to become accessible
+  local_action: shell ssh heat-admin@{{ inventory_hostname }} exit
+  register: result
+  ignore_errors: true
+  until: result.rc == 0
+  retries: 60
+  delay: 10

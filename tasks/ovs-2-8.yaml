@@ -1,0 +1,54 @@
+---
+- name: config ovs default.conf
+  become: true
+  lineinfile:
+    dest: /etc/openvswitch/default.conf
+    regexp: '^OVS_USER_ID=".*"'
+    line: 'OVS_USER_ID="openvswitch:hugetlbfs"'
+    state: present
+    backrefs: yes
+
+- name: config libvirt qemu.conf
+  become: true
+  lineinfile:
+    dest: /etc/libvirt/qemu.conf
+    line: "{{ item }}"
+    state: present
+  with_items:
+    - 'user = "openvswitch"'
+    - 'group = "hugetlbfs"'
+
+- name: add hugetlbfs group
+  become: true
+  group:
+    name: hugetlbfs
+    state: present
+
+- name: add openvswitch user
+  become: true
+  user:
+    name: openvswitch
+    shell: /sbin/nologin
+    comment: "OpenvSwitch Daemons"
+    home: /
+    system: yes
+    group: hugetlbfs
+
+- name: change owner and group of openvswitch files
+  become: true
+  file:
+    path: "{{ item.name }}"
+    owner: openvswitch
+    group: hugetlbfs
+    recurse: yes
+  with_items:
+    - name: "{{ ovs_config_dir }}"
+    - name: "{{ ovs_log_dir }}"
+    - name: "{{ ovs_run_dir }}"
+
+- name: change vfio group
+  become: true
+  file:
+    path: /dev/vfio
+    group: hugetlbfs
+    recurse: yes
