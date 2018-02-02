@@ -11,24 +11,25 @@ sudo yum localinstall -y https://trunk.rdoproject.org/centos7/current/${TRIPLEO_
 CURRENT_OVS_VERSION=$(rpm -q --queryformat '%{Version}\n' openvswitch | cut -d. -f1-2)
 
 # Backup delorean repos
-sudo mkdir /home/stack/REPOBACKUP
+sudo mkdir -p /home/stack/REPOBACKUP
 sudo mv /etc/yum.repos.d/delorean* /home/stack/REPOBACKUP
 
 # Install openstack repo according to target ovs version
-{% if target_ovs_version >= $((CURRENT_OVS_VERSION)) %}
+CURRENT_OVS_VERSION=${CURRENT_OVS_VERSION//./}
 
-{% if target_ovs_version == '2.6' %}
-sudo tripleo-repos -b ocata current
-{% elif target_ovs_version == '2.7 '%}
-sudo tripleo-repos -b pike current
-{% elif target_ovs_version == '2.8 '%}
-sudo tripleo-repos -b queens current
+{% if target_ovs_version in '2.6' %}
+if [ ${CURRENT_OVS_VERSION}  -le 26 ]; then
+	sudo tripleo-repos -b ocata current
+fi
+{% elif target_ovs_version in '2.7 '%}
+if [ ${CURRENT_OVS_VERSION}  -le 27 ]; then
+	sudo tripleo-repos -b pike current
+fi
+{% elif target_ovs_version in '2.8 '%}
+if [ ${CURRENT_OVS_VERSION}  -le 28 ]; then
+	sudo tripleo-repos -b queens current
+fi
 {% endif %}
-
-{% else %}
-echo "Target ovs version is lower than current ovs version, skipping upgrade..."
-{% endif %}
-
 
 sudo yum update -y openvswitch
 
