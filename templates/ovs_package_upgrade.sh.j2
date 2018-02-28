@@ -3,19 +3,18 @@
 # Perform ovs package upgrade and related steps
 set -euo pipefail
 
-# Install tripleo-repos
-TRIPLEO_REPOS_RPM=$(curl -L --silent https://trunk.rdoproject.org/centos7/current/ | grep python2-tripleo-repos | awk -F "href" {'print $2'} | awk -F '"' {'print $2'})
-sudo yum localinstall -y https://trunk.rdoproject.org/centos7/current/${TRIPLEO_REPOS_RPM}
-
-# Get current ovs version
-CURRENT_OVS_VERSION=$(rpm -q --queryformat '%{Version}\n' openvswitch | cut -d. -f1-2)
-
 # Backup delorean repos
 sudo mkdir -p /home/stack/REPOBACKUP
 sudo mv /etc/yum.repos.d/delorean* /home/stack/REPOBACKUP
 
-# Install openstack repo according to target ovs version
+# Get current ovs version
+CURRENT_OVS_VERSION=$(rpm -q --queryformat '%{Version}\n' openvswitch | cut -d. -f1-2)
 CURRENT_OVS_VERSION=${CURRENT_OVS_VERSION//./}
+
+{% if ovs_repo_type == 'tripleo-repos' %}
+# Install tripleo-repos
+TRIPLEO_REPOS_RPM=$(curl -L --silent https://trunk.rdoproject.org/centos7/current/ | grep python2-tripleo-repos | awk -F "href" {'print $2'} | awk -F '"' {'print $2'})
+sudo yum localinstall -y https://trunk.rdoproject.org/centos7/current/${TRIPLEO_REPOS_RPM}
 
 {% if target_ovs_version in '2.6' %}
 if [ ${CURRENT_OVS_VERSION}  -le 26 ]; then
@@ -29,6 +28,26 @@ fi
 if [ ${CURRENT_OVS_VERSION}  -le 28 ]; then
 	sudo tripleo-repos -b queens current
 fi
+{% endif %}
+{% endif %}
+
+{% if ovs_repo_type == 'rhos-release' %}
+#RHOS_RELEASE_URL="https://url.corp.redhat.com/rhos-release-latest-rpm"
+#sudo yum install -y $RHOS_RELEASE_URL
+
+{% if target_ovs_version in '2.6' %}
+if [ ${CURRENT_OVS_VERSION}  -le 26 ]; then
+	sudo rhos-release 10 -p latest -r 7.4 -t /etc/yum.repos.d
+fi
+{% elif target_ovs_version in '2.7 '%}
+if [ ${CURRENT_OVS_VERSION}  -le 27 ]; then
+	sudo rhos-release 12 -p latest -r 7.4 -t /etc/yum.repos.d
+fi
+{% elif target_ovs_version in '2.9 '%}
+if [ ${CURRENT_OVS_VERSION}  -le 29 ]; then
+	sudo rhos-release 13 -p latest -r 7.4 -t /etc/yum.repos.d
+fi
+{% endif %}
 {% endif %}
 
 sudo yum update -y openvswitch

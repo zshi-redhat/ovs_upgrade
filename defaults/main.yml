@@ -3,6 +3,9 @@
 # main vars:
 working_dir: "{{ (ansible_env|default({})).HOME|default('/home/stack') }}"
 
+# openvswitch repo type
+ovs_repo_type: tripleo-repos
+
 # openvswitch
 ovs_config_dir: "/etc/openvswitch"
 ovs_log_dir: "/var/log/openvswitch"
