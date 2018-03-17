@@ -22,7 +22,7 @@ dpdk_enabled: false
 
 # dpdk ports mapping {name: pci_address}
 # this may differ among compute nodes
-# dpdk_ports: { "dpdk0": "0000:06:00.1" }
+dpdk_ports: { "dpdk0": "0000:06:00.1" }
 
 # this only allows major version changes, such as 2.6, 2.7 etc
 # subversion like 2.6.1, 2.7.2 are not supported
