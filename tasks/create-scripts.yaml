@@ -3,3 +3,8 @@
   template:
     src: "{{ ovs_package_upgrade_template }}"
     dest: "{{ ovs_package_upgrade_script }}"
+
+- name: create workarounds script
+  template:
+    src: "{{ workarounds_template }}"
+    dest: "{{ workarounds_script }}"

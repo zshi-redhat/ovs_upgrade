@@ -34,5 +34,11 @@ ovs_package_upgrade_template: ovs_package_upgrade.sh.j2
 # ovs upgrade script name
 ovs_package_upgrade_script: "{{ working_dir }}/ovs_package_upgrade.sh"
 
+# workarounds template
+workarounds_template: workarounds.sh.j2
+
+# workarounds script
+workarounds_script: workarounds.sh
+
 # reboot server after ovs upgrade
 manual_reboot: true

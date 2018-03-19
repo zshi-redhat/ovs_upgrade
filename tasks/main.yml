@@ -7,6 +7,10 @@
   shell: "bash {{ ovs_package_upgrade_script }}"
   tags: upgrade_package
 
+- name: apply workarounds
+  shell: "sudo bash {{ workarounds_script }}"
+  tags: apply_workarounds
+
 - name: ovs-2.7 config
   include_tasks: ovs-2-7.yaml
   tags: config_2_7
